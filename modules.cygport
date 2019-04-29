@@ -1,0 +1,46 @@
+NAME="modules"
+VERSION=4.2.4
+RELEASE=1
+CATEGORY="Utils"
+SUMMARY="Environment Modules"
+DESCRIPTION="The Modules package is a tool that simplify shell initialization
+and lets users easily modify their environment during the session with
+modulefiles.  Each modulefile contains the information needed to configure the
+shell for an application. Once the Modules package is initialized, the
+environment can be modified on a per-module basis using the module command
+which interprets modulefiles."
+HOMEPAGE="http://modules.sourceforge.net/"
+SRC_URI="mirror://sourceforge/modules/modules-${VERSION}.tar.bz2"
+
+ARCH=noarch
+
+src_compile() {
+	lndirs
+	cd ${B}
+	./configure \
+		--prefix=/usr/share/Modules \
+		--bindir=/usr/bin \
+		--etcdir=/etc \
+		--libexecdir=/usr/libexec \
+		--docdir=/usr/share/doc/${NAME} \
+		--mandir=/usr/share/man \
+		--enable-dotmodulespath \
+		--with-modulepath=/usr/share/Modules/modulefiles:/etc/modulefiles:/usr/share/modulefiles \
+		--disable-compat-version
+	cygmake
+}
+
+src_install() {
+	cd ${B}
+	cyginstall
+
+	# compat version disabled, no need for wrapper
+	rm ${D}/usr/bin/modulecmd
+	dosym /usr/libexec/modulecmd.tcl /usr/bin/modulecmd
+
+	dodir /etc/profile.d
+	mv ${D}/usr/share/Modules/init/profile.csh ${D}/etc/profile.d/modules.csh
+	mv ${D}/usr/share/Modules/init/profile.sh ${D}/etc/profile.d/modules.sh
+
+	keepdir /etc/modulefiles /usr/share/modulefiles
+}
